@@ -15,6 +15,11 @@
 		A9D197121C4E75AE00533FCB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9D197101C4E75AE00533FCB /* LaunchScreen.storyboard */; };
 		A9D1971D1C4E761400533FCB /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9D1971C1C4E761400533FCB /* CoreData.framework */; };
 		A9D1971F1C4E761A00533FCB /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9D1971E1C4E761A00533FCB /* MapKit.framework */; };
+		A9D197321C4E7A2A00533FCB /* Pin+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D1972E1C4E7A2A00533FCB /* Pin+CoreDataProperties.swift */; };
+		A9D197331C4E7A2A00533FCB /* Pin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D1972F1C4E7A2A00533FCB /* Pin.swift */; };
+		A9D197341C4E7A2A00533FCB /* Photo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D197301C4E7A2A00533FCB /* Photo+CoreDataProperties.swift */; };
+		A9D197351C4E7A2A00533FCB /* Photo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D197311C4E7A2A00533FCB /* Photo.swift */; };
+		A9D197371C4E7A6600533FCB /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D197361C4E7A6600533FCB /* CoreDataManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +33,11 @@
 		A9D197131C4E75AE00533FCB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A9D1971C1C4E761400533FCB /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		A9D1971E1C4E761A00533FCB /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
+		A9D1972E1C4E7A2A00533FCB /* Pin+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Pin+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		A9D1972F1C4E7A2A00533FCB /* Pin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Pin.swift; sourceTree = "<group>"; };
+		A9D197301C4E7A2A00533FCB /* Photo+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Photo+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		A9D197311C4E7A2A00533FCB /* Photo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Photo.swift; sourceTree = "<group>"; };
+		A9D197361C4E7A6600533FCB /* CoreDataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,7 +74,7 @@
 			children = (
 				A9D197041C4E75AE00533FCB /* AppDelegate.swift */,
 				A9D197081C4E75AE00533FCB /* Main.storyboard */,
-				A9D197191C4E75D800533FCB /* Data Store */,
+				A9D197191C4E75D800533FCB /* Data Model */,
 				A9D1971A1C4E75EA00533FCB /* View Controllers */,
 				A9D1971B1C4E75F500533FCB /* Clients */,
 				A9D197211C4E764C00533FCB /* Supporting */,
@@ -72,12 +82,16 @@
 			path = VirtualTourist;
 			sourceTree = "<group>";
 		};
-		A9D197191C4E75D800533FCB /* Data Store */ = {
+		A9D197191C4E75D800533FCB /* Data Model */ = {
 			isa = PBXGroup;
 			children = (
-				A9D1970B1C4E75AE00533FCB /* VirtualTourist.xcdatamodeld */,
+				A9D197381C4E7BFB00533FCB /* Store */,
+				A9D1972E1C4E7A2A00533FCB /* Pin+CoreDataProperties.swift */,
+				A9D1972F1C4E7A2A00533FCB /* Pin.swift */,
+				A9D197301C4E7A2A00533FCB /* Photo+CoreDataProperties.swift */,
+				A9D197311C4E7A2A00533FCB /* Photo.swift */,
 			);
-			name = "Data Store";
+			name = "Data Model";
 			sourceTree = "<group>";
 		};
 		A9D1971A1C4E75EA00533FCB /* View Controllers */ = {
@@ -114,6 +128,15 @@
 				A9D197131C4E75AE00533FCB /* Info.plist */,
 			);
 			name = Supporting;
+			sourceTree = "<group>";
+		};
+		A9D197381C4E7BFB00533FCB /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				A9D1970B1C4E75AE00533FCB /* VirtualTourist.xcdatamodeld */,
+				A9D197361C4E7A6600533FCB /* CoreDataManager.swift */,
+			);
+			name = Store;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -187,8 +210,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9D197351C4E7A2A00533FCB /* Photo.swift in Sources */,
+				A9D197341C4E7A2A00533FCB /* Photo+CoreDataProperties.swift in Sources */,
+				A9D197331C4E7A2A00533FCB /* Pin.swift in Sources */,
 				A9D197071C4E75AE00533FCB /* MapViewController.swift in Sources */,
+				A9D197321C4E7A2A00533FCB /* Pin+CoreDataProperties.swift in Sources */,
 				A9D197051C4E75AE00533FCB /* AppDelegate.swift in Sources */,
+				A9D197371C4E7A6600533FCB /* CoreDataManager.swift in Sources */,
 				A9D1970D1C4E75AE00533FCB /* VirtualTourist.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -302,10 +330,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				INFOPLIST_FILE = VirtualTourist/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.billdawson.VirtualTourist;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
@@ -313,6 +343,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				INFOPLIST_FILE = VirtualTourist/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.billdawson.VirtualTourist;

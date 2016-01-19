@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  MapViewController.swift
 //  VirtualTourist
 //
 //  Created by Bill Dawson on 1/19/16.
@@ -7,19 +7,63 @@
 //
 
 import UIKit
+import MapKit
 
-class ViewController: UIViewController {
+private let PIN_REUSE_ID = "pinReuseId"
 
+class MapViewController: UIViewController, MKMapViewDelegate {
+
+    // MARK: - Outlets
+
+    @IBOutlet weak var editButton: UIBarButtonItem!
+    @IBOutlet weak var mapView: MKMapView!
+
+    // MARK: - Properties
+
+    var longPressRecognizer: UILongPressGestureRecognizer!
+
+    // MARK: UIViewController
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        setupLongPress()
+        mapView.delegate = self
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    // MARK: - Actions
+    
+    @IBAction func editTouchUp(sender: AnyObject) {
     }
 
+    // MARK: - MapKit
+
+    func makeAnnotation(coordinate: CLLocationCoordinate2D) -> MKAnnotation {
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = coordinate
+        return annotation
+    }
+
+    func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
+        let view = (mapView.dequeueReusableAnnotationViewWithIdentifier(PIN_REUSE_ID) ?? MKPinAnnotationView(annotation: annotation, reuseIdentifier: PIN_REUSE_ID)) as! MKPinAnnotationView
+        view.annotation = annotation
+        view.animatesDrop = true
+        return view
+    }
+
+    // MARK: - Gestures
+
+    func longPress(recognizer: UIGestureRecognizer) {
+        if recognizer.state == .Began {
+            print("Long press")
+            let pressPoint = recognizer.locationInView(mapView)
+            let coord : CLLocationCoordinate2D = mapView.convertPoint(pressPoint, toCoordinateFromView: mapView)
+            mapView.addAnnotation(makeAnnotation(coord))
+        }
+    }
+
+    func setupLongPress() {
+        longPressRecognizer = UILongPressGestureRecognizer(target: self, action: "longPress:")
+        mapView.addGestureRecognizer(longPressRecognizer)
+    }
 
 }
 
