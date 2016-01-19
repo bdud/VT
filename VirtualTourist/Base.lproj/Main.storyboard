@@ -17,6 +17,16 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tap Pins to Delete" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ddd-BK-gPA">
+                                <rect key="frame" x="0.0" y="600" width="600" height="48"/>
+                                <color key="backgroundColor" red="1" green="0.1647058824" blue="0.1019607843" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="48" id="aFn-EV-RjY"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="rqA-So-Dmf">
                                 <rect key="frame" x="0.0" y="64" width="600" height="536"/>
                             </mapView>
@@ -24,9 +34,12 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="rqA-So-Dmf" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="0TX-Ip-zSq"/>
+                            <constraint firstAttribute="trailing" secondItem="ddd-BK-gPA" secondAttribute="trailing" id="C9h-ld-Ynv"/>
                             <constraint firstAttribute="trailing" secondItem="rqA-So-Dmf" secondAttribute="trailing" id="cG3-1T-xQN"/>
                             <constraint firstAttribute="bottom" secondItem="rqA-So-Dmf" secondAttribute="bottom" id="hhG-8C-D2o"/>
                             <constraint firstItem="rqA-So-Dmf" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="mrI-4b-F5A"/>
+                            <constraint firstItem="ddd-BK-gPA" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="vdg-71-FPU"/>
+                            <constraint firstItem="ddd-BK-gPA" firstAttribute="top" secondItem="rqA-So-Dmf" secondAttribute="bottom" id="ybD-XP-jWh"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Virtual Tourist" id="RgJ-2Y-fe2">
@@ -37,6 +50,7 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="deleteLabel" destination="ddd-BK-gPA" id="swJ-45-jVM"/>
                         <outlet property="editButton" destination="xVp-Ra-grn" id="6YK-M3-L8Q"/>
                         <outlet property="mapView" destination="rqA-So-Dmf" id="Zd4-8j-OTF"/>
                     </connections>

@@ -11,11 +11,11 @@
 
 import Foundation
 import CoreData
+import MapKit
 
 extension Pin {
-
-    @NSManaged var longitude: String?
-    @NSManaged var latitude: String?
+    @NSManaged var longitude: NSNumber?
+    @NSManaged var latitude: NSNumber?
     @NSManaged var photos: NSOrderedSet?
 
 }
