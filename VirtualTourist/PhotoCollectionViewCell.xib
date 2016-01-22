@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="9531" systemVersion="15C50" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9529"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB" customClass="PhotoCollectionViewCell" customModule="VirtualTourist" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="H5O-b8-CIE">
+                    <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                </imageView>
+            </subviews>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstItem="H5O-b8-CIE" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" id="TRu-a8-HTD"/>
+                <constraint firstAttribute="bottom" secondItem="H5O-b8-CIE" secondAttribute="bottom" id="e19-qK-t1v"/>
+                <constraint firstItem="H5O-b8-CIE" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="hgU-nN-HRt"/>
+                <constraint firstAttribute="trailing" secondItem="H5O-b8-CIE" secondAttribute="trailing" id="lDe-Mi-cCd"/>
+            </constraints>
+            <connections>
+                <outlet property="imageView" destination="H5O-b8-CIE" id="hJj-3t-KNt"/>
+            </connections>
+        </view>
+    </objects>
+</document>

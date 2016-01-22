@@ -21,7 +21,14 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
         static let EditTitle = "Edit"
         static let DoneTitle = "Done"
         static let AnimationDuration = 0.4
+        static let PhotosSegueId = "SegueToPhotos"
+        static let MapRegionKey = "MapRegionKey"
+        static let DeletePinsText = "Tap Pins to Delete"
+        static let DeletePinsBackColor = UIColor.redColor()
+        static let NoMorePinsText = "No Remaining Pins"
+        static let NoMorePinsBackColor = UIColor.darkGrayColor()
     }
+
     // MARK: - Outlets
 
     @IBOutlet weak var editButton: UIBarButtonItem!
@@ -32,8 +39,11 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
 
     var longPressRecognizer: UILongPressGestureRecognizer!
     var mode: Mode = .Browse
+    var lastSelectedPin: Pin?
+    var trackMapRegionChanges: Bool = false
 
     // MARK: UIViewController
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupLongPress()
@@ -41,6 +51,37 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
         resultsController.delegate = self
         loadPins()
         enableEditButton()
+    }
+
+
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
+        setMapRegion()
+        trackMapRegionChanges = true
+    }
+
+    override func viewDidDisappear(animated: Bool) {
+        super.viewDidDisappear(animated)
+        trackMapRegionChanges = false
+    }
+
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        guard segue.identifier! == Constants.PhotosSegueId else {
+            return
+        }
+        guard let controller = segue.destinationViewController as? PhotosCollectionViewController else {
+            print("Unexpected segue destination controller")
+            return
+        }
+
+        guard let pin = lastSelectedPin else {
+            print("No selected pin")
+            return
+        }
+
+        controller.pin = pin
+        mapView.deselectAnnotation(pin, animated: false)
+
     }
 
     // MARK: - Actions
@@ -65,18 +106,42 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
     }
 
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
+        assertMainThread()
         if mode == .Edit {
             CoreDataManager.sharedInstance().context.deleteObject(view.annotation as! NSManagedObject)
             CoreDataManager.sharedInstance().saveContext()
             if resultsController.sections?[0].numberOfObjects == 0 {
+
                 // Stop editing, there's nothing left
-                editTouchUp(self)
+
+                deleteLabel.backgroundColor = Constants.NoMorePinsBackColor
+                deleteLabel.text = Constants.NoMorePinsText
+
+                let delay = dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC)) // 1 sec
+                dispatch_after(delay, dispatch_get_main_queue(), { () -> Void in
+                    if self.mode == .Edit {
+                        // Simulate stopping edit.
+                        self.editTouchUp(self)
+                    }
+                })
             }
         }
         else {
-            // TODO segue to photos
-            print("Segue to photos")
+            lastSelectedPin = view.annotation as? Pin
+            performSegueWithIdentifier(Constants.PhotosSegueId, sender: self)
         }
+    }
+
+    func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+        if (!trackMapRegionChanges) {
+            return
+        }
+
+        let newRegion = mapView.region
+        let array: [Double] = [newRegion.center.latitude, newRegion.center.longitude, newRegion.span.latitudeDelta, newRegion.span.longitudeDelta]
+        let defaults = NSUserDefaults.standardUserDefaults()
+        defaults.setObject(array, forKey: Constants.MapRegionKey)
+        defaults.synchronize()
     }
 
     // MARK: - Gestures
@@ -109,6 +174,14 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
 
     // MARK: - Misc
 
+    func setMapRegion() {
+        if let array = NSUserDefaults.standardUserDefaults().objectForKey(Constants.MapRegionKey) as? [Double] {
+            let coord = CLLocationCoordinate2D(latitude: array[0], longitude: array[1])
+            let region = MKCoordinateRegionMake(coord, MKCoordinateSpanMake(array[2], array[3]))
+            mapView.setRegion(region, animated: true)
+        }
+    }
+
     func loadPins() {
         assertMainThread()
         do {
@@ -124,17 +197,19 @@ class MapViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsCo
 
     func toggleEditMode() {
         assertMainThread()
+        mode = (mode == .Edit) ? Mode.Browse : Mode.Edit
+
         let height: CGFloat = deleteLabel.frame.height
-        if mode == .Edit {
-            mode = .Browse
+        if mode == .Browse {
             editButton.title = Constants.EditTitle
             slideMapViewY(0.0)
         }
         else {
-            mode = .Edit
+            deleteLabel.backgroundColor = Constants.DeletePinsBackColor
+            deleteLabel.text = Constants.DeletePinsText
+
             editButton.title = Constants.DoneTitle
             slideMapViewY(height)
-
         }
     }
 
