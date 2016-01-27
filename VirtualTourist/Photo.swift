@@ -8,28 +8,82 @@
 
 import Foundation
 import CoreData
+import UIKit
 
+typealias ImageLoadCallback = (errorMessage: String?, image: UIImage?) -> Void
 
 class Photo: NSManagedObject {
+
+    // MARK: - Unmanaged Properties
+
+    private var cachedImage: UIImage?
+    private var callbacks: [ImageLoadCallback] = [ImageLoadCallback]()
+    private let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+
+    // MARK: - Initializers
 
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
         super.init(entity: entity, insertIntoManagedObjectContext: context)
     }
 
-    init(pin: Pin, url: String, insertIntoManagedObjectContext context: NSManagedObjectContext) {
+    init(pin: Pin, url: String, fileName: String, insertIntoManagedObjectContext context: NSManagedObjectContext) {
         let entity = NSEntityDescription.entityForName("Photo", inManagedObjectContext: context)!
         super.init(entity: entity, insertIntoManagedObjectContext: context)
-        self.url = url
+        self.remoteUrl = url
         self.pin = pin
+        self.fileName = fileName
     }
 
-    var fileName: String? {
-        guard let urlString = self.url, url = NSURL(string: urlString) else {
-            return nil
+    // MARK: - Image management
+
+    func isImageAvailableLocally() -> Bool {
+        if let _ = cachedImage {
+            return true
         }
 
-        let path = url.path?.stringByReplacingOccurrencesOfString("/", withString: ".")
-        return "\(url.host).\(path)"
+        guard let fileName = fileName else {
+            return false
+        }
+
+        return NSFileManager.defaultManager().fileExistsAtPath(appDelegate.documentsDirectory.URLByAppendingPathComponent(fileName).path!)
+    }
+
+    func image(callback: ImageLoadCallback) {
+        // Check cachedImage
+        if let cachedImage = cachedImage {
+            print("Already cached, returning that.")
+            callback(errorMessage: nil, image: cachedImage)
+            return
+        }
+
+        callbacks.append(callback)
+
+        // * Check file system
+        guard let fileName = fileName else {
+            print("No local file name stored for photo at url: \(remoteUrl)")
+            return
+        }
+
+        let localUrl = appDelegate.documentsDirectory.URLByAppendingPathComponent(fileName)
+
+        if NSFileManager.defaultManager().fileExistsAtPath(localUrl.path!) {
+            createCachedImage(localUrl.path!)
+        }
+        else {
+            print("We have a local path saved: \(localUrl.path) but file manager says nothing there.")
+        }
+    }
+
+    func createCachedImage(path: String) {
+        cachedImage = UIImage(contentsOfFile: path)
+        if let image = cachedImage {
+            for callback in callbacks {
+                callback(errorMessage: nil, image: image)
+            }
+        }
+        else {
+            print("Image didn't get created!")
+        }
     }
 
 }

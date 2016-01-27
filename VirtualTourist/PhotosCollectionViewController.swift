@@ -13,7 +13,7 @@ import MapKit
 private let reuseIdentifier = "Cell"
 private let cellNib = "PhotoCollectionViewCell"
 
-class PhotosCollectionViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+class PhotosCollectionViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, PhotoBatchDownloaderDelegate {
 
     struct Constants {
         static let BackButtonTitle = "Map"
@@ -29,19 +29,21 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
 
     var pin: Pin?
     var flickrQuery: FlickrClient.QueryState?
+    var batchDownloader: PhotoBatchDownloader?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         automaticallyAdjustsScrollViewInsets = false
 
-        collectionView.dataSource = self
-        collectionView.delegate = self
-
-        // Register cell classes
         collectionView!.registerNib(UINib(nibName: cellNib, bundle: nil), forCellWithReuseIdentifier: reuseIdentifier)
+        collectionView.delegate = self
+        collectionView.dataSource = self
 
-        fetchPhotosIfNeeded()
-        positionMap()
+        // Queue these up just so the segue doesn't look too delayed.
+        dispatch_async(dispatch_get_main_queue()) { () -> Void in
+            self.fetchPhotosIfNeeded()
+            self.positionMap()
+        }
     }
 
 
@@ -63,10 +65,35 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
     }
 
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
+        print("IndexPath Row: \(indexPath.row)")
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! PhotoCollectionViewCell
-    
-        // Configure the cell
-        print("\(cell)")
+
+        // Remember our row since we're going to do an async op to get
+        // the photo image, and we'll only display it later if in fact we
+        // are still sitting in same place. Else all hell breaks loose since
+        // cells are recycled.
+        cell.tag = indexPath.row
+
+        if let photos = self.pin?.photos, photo = photos.objectAtIndex(indexPath.row) as? Photo {
+            photo.image({ (errorMessage, image) -> Void in
+                guard errorMessage == nil else {
+                    print("Error getting image: \(errorMessage!)")
+                    return
+                }
+
+                // Are we still at the same row or have we scrolled away?
+                // If so, go ahead and set the image.
+                if let image = image {
+                    if indexPath.row == cell.tag {
+                        dispatch_async(dispatch_get_main_queue()) {
+                            print("ASSIGNING IMAGE VIEW")
+                            cell.imageView.image = image
+                        }
+                    }
+                }
+            })
+        }
+
     
         return cell
     }
@@ -108,6 +135,18 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
         return CoreDataManager.sharedInstance().context
     }()
 
+    func reloadData() {
+        if !NSThread.isMainThread() {
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                self.reloadData()
+            })
+            return
+        }
+
+        assert(NSThread.isMainThread())
+
+        collectionView.reloadData()
+    }
     func fetchPhotosIfNeeded() {
         guard let pin = pin else {
             print("No Pin passed to PhotosCollectionViewController")
@@ -124,7 +163,7 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
 
         flickrQuery = FlickrClient.QueryState(page: 1, latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude)
 
-        print("Fetching from Flickr")
+        print("Fetching info from Flickr")
         FlickrClient.sharedInstance().queryPhotosByLocation(flickrQuery!) { (errorMessage, result) -> Void in
             guard errorMessage == nil else {
                 Alert.sharedInstance().ok(nil, message: errorMessage!, owner: self, completion: nil)
@@ -141,11 +180,20 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
 
             // Make managed Photo objects.
             result.photos.forEach({ (entry: [String: AnyObject]) -> () in
-                if let url = entry[FlickrClient.JSONKeys.Url] as? String {
-                    let _ = Photo(pin: self.pin!, url: url, insertIntoManagedObjectContext: self.sharedContext)
+                if let url = entry[FlickrClient.JSONKeys.Url] as? String, id = entry[FlickrClient.JSONKeys.ID] as? String {
+                    let _ = Photo(pin: self.pin!, url: url, fileName: id, insertIntoManagedObjectContext: self.sharedContext)
                 }
             })
             CoreDataManager.sharedInstance().saveContext()
+
+            self.reloadData()
+
+            self.batchDownloader = PhotoBatchDownloader(photos: self.pin!.photos!, callback: { (success, photos) -> Void in
+                print("Downloads completed")
+                self.reloadData()
+            })
+
+            self.batchDownloader!.start()
         }
     }
 
@@ -167,6 +215,11 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
 
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
         return CGSizeMake(100.0, 100.0)
+    }
+
+    // MARK: - PhotoBatchDownloaderDelegate
+    func downloaderDidDownloadPhoto(_: Photo) {
+        reloadData()
     }
 
 }

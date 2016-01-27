@@ -8,6 +8,7 @@
 
 import Foundation
 
+
 class FlickrClient {
 
     func queryPhotosByLocation(query: QueryState, callback: (errorMessage: String?, result: FlickrClient.Result?) -> Void) {

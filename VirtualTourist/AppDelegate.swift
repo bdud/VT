@@ -20,5 +20,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         CoreDataManager.sharedInstance().saveContext()
     }
 
+    lazy var documentsDirectory: NSURL = {
+        return NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask).last!
+    }()
+
 }
 
