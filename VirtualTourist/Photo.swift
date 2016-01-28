@@ -69,9 +69,6 @@ class Photo: NSManagedObject {
         if NSFileManager.defaultManager().fileExistsAtPath(localUrl.path!) {
             createCachedImage(localUrl.path!)
         }
-        else {
-            print("We have a local path saved: \(localUrl.path) but file manager says nothing there.")
-        }
     }
 
     func createCachedImage(path: String) {

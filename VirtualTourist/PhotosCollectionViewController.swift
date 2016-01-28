@@ -12,6 +12,7 @@ import MapKit
 
 private let reuseIdentifier = "Cell"
 private let cellNib = "PhotoCollectionViewCell"
+private let defaultItemCount = 21
 
 class PhotosCollectionViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, PhotoBatchDownloaderDelegate {
 
@@ -46,7 +47,6 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
         }
     }
 
-
     // MARK: UICollectionViewDataSource
 
     func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
@@ -57,41 +57,41 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if let pin = pin, photos = pin.photos {
             print("\(photos.count) photos in section")
-            return photos.count
+            return photos.count > 0 ? photos.count : defaultItemCount
         }
         else {
-            return 0
+            return defaultItemCount
         }
     }
 
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
-        print("IndexPath Row: \(indexPath.row)")
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! PhotoCollectionViewCell
 
-        // Remember our row since we're going to do an async op to get
-        // the photo image, and we'll only display it later if in fact we
-        // are still sitting in same place. Else all hell breaks loose since
-        // cells are recycled.
-        cell.tag = indexPath.row
+        if let photos = self.pin?.photos where indexPath.row < photos.count {
+            if let photo = photos.objectAtIndex(indexPath.row) as? Photo {
+                // Remember our row since we're going to do an async op to get
+                // the photo image, and we'll only display it later if in fact we
+                // are still sitting in same place. Else all hell breaks loose since
+                // cells are recycled.
+                cell.tag = indexPath.row
 
-        if let photos = self.pin?.photos, photo = photos.objectAtIndex(indexPath.row) as? Photo {
-            photo.image({ (errorMessage, image) -> Void in
-                guard errorMessage == nil else {
-                    print("Error getting image: \(errorMessage!)")
-                    return
-                }
+                photo.image({ (errorMessage, image) -> Void in
+                    guard errorMessage == nil else {
+                        print("Error getting image: \(errorMessage!)")
+                        return
+                    }
 
-                // Are we still at the same row or have we scrolled away?
-                // If so, go ahead and set the image.
-                if let image = image {
-                    if indexPath.row == cell.tag {
-                        dispatch_async(dispatch_get_main_queue()) {
-                            print("ASSIGNING IMAGE VIEW")
-                            cell.imageView.image = image
+                    // Are we still at the same row or have we scrolled away?
+                    // If so, go ahead and set the image.
+                    if let image = image {
+                        if indexPath.row == cell.tag {
+                            dispatch_async(dispatch_get_main_queue()) {
+                                cell.setImage(image)
+                            }
                         }
                     }
-                }
-            })
+                })
+            }
         }
 
     
@@ -129,7 +129,7 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
     }
     */
 
-    // MARK: - Data
+    // MARK: - Data and Downloads
 
     lazy var sharedContext: NSManagedObjectContext = {
         return CoreDataManager.sharedInstance().context
@@ -147,6 +147,7 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
 
         collectionView.reloadData()
     }
+
     func fetchPhotosIfNeeded() {
         guard let pin = pin else {
             print("No Pin passed to PhotosCollectionViewController")
@@ -191,9 +192,12 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
             self.batchDownloader = PhotoBatchDownloader(photos: self.pin!.photos!, callback: { (success, photos) -> Void in
                 print("Downloads completed")
                 self.reloadData()
+                self.batchDownloader = nil
             })
 
-            self.batchDownloader!.start()
+            self.batchDownloader?.delegate = self
+
+            self.batchDownloader?.begin()
         }
     }
 
@@ -216,10 +220,4 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
         return CGSizeMake(100.0, 100.0)
     }
-
-    // MARK: - PhotoBatchDownloaderDelegate
-    func downloaderDidDownloadPhoto(_: Photo) {
-        reloadData()
-    }
-
 }

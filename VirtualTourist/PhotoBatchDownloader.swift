@@ -21,11 +21,10 @@ class PhotoBatchDownloader {
     private let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
     var photos: NSOrderedSet
     var callback: PhotoBatchDownloaderCallback!
-    var individualDownloads: [Photo: FlickrImageDownloader]?
     var errors: [String] = [String]()
     var remaining: Int
 
-    var delegate: PhotoBatchDownloaderDelegate?
+    weak var delegate: PhotoBatchDownloaderDelegate?
 
     init(photos: NSOrderedSet, callback: PhotoBatchDownloaderCallback) {
         self.photos = photos
@@ -33,7 +32,7 @@ class PhotoBatchDownloader {
         remaining = photos.count
     }
 
-    func start() {
+    func begin() {
         print("Fetching photos from flickr")
         photos.forEach { (element: AnyObject) -> () in
             let photo = element as! Photo
@@ -47,11 +46,11 @@ class PhotoBatchDownloader {
                 }
                 guard errorMessage == nil else {
                     self.errors.append(errorMessage!)
-                    self.delegate?.downloaderDidEncounterError!(errorMessage!, whileDownloadingPhoto: photo)
+                    self.delegate?.downloaderDidEncounterError?(errorMessage!, whileDownloadingPhoto: photo)
                     return
                 }
                 CoreDataManager.sharedInstance().saveContext()
-                self.delegate?.downloaderDidDownloadPhoto!(photo)
+                self.delegate?.downloaderDidDownloadPhoto?(photo)
 
             })
             downloader.begin()

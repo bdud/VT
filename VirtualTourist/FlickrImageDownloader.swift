@@ -33,12 +33,6 @@ class FlickrImageDownloader {
     }
 
 
-    func cancel() {
-        if let task = task where task.state == NSURLSessionTaskState.Running {
-            task.cancel()
-        }
-    }
-
     func isRunning() -> Bool {
         if let task = task where task.state == NSURLSessionTaskState.Running {
             return true

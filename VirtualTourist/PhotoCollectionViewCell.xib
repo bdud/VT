@@ -14,15 +14,23 @@
                 <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="H5O-b8-CIE">
                     <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                 </imageView>
+                <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="2Fr-ey-EMv">
+                    <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                </activityIndicatorView>
             </subviews>
             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
             <constraints>
+                <constraint firstAttribute="bottom" secondItem="2Fr-ey-EMv" secondAttribute="bottom" id="8bC-SF-NQV"/>
+                <constraint firstItem="2Fr-ey-EMv" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" id="Dax-PN-4X5"/>
+                <constraint firstAttribute="trailing" secondItem="2Fr-ey-EMv" secondAttribute="trailing" id="LuS-Xm-qxo"/>
+                <constraint firstItem="2Fr-ey-EMv" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="O8O-ee-CE3"/>
                 <constraint firstItem="H5O-b8-CIE" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" id="TRu-a8-HTD"/>
                 <constraint firstAttribute="bottom" secondItem="H5O-b8-CIE" secondAttribute="bottom" id="e19-qK-t1v"/>
                 <constraint firstItem="H5O-b8-CIE" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" id="hgU-nN-HRt"/>
                 <constraint firstAttribute="trailing" secondItem="H5O-b8-CIE" secondAttribute="trailing" id="lDe-Mi-cCd"/>
             </constraints>
             <connections>
+                <outlet property="activityIndicator" destination="2Fr-ey-EMv" id="XWk-5K-RRh"/>
                 <outlet property="imageView" destination="H5O-b8-CIE" id="hJj-3t-KNt"/>
             </connections>
         </view>
