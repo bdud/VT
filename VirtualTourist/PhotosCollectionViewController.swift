@@ -13,6 +13,8 @@ import MapKit
 private let reuseIdentifier = "Cell"
 private let cellNib = "PhotoCollectionViewCell"
 private let defaultItemCount = 21
+private let itemsPerRow = 3
+private let spacing: CGFloat = 4.0
 
 class PhotosCollectionViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, PhotoBatchDownloaderDelegate {
 
@@ -44,6 +46,11 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
 
         fetchPhotosIfNeeded()
         positionMap()
+    }
+
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        collectionView.collectionViewLayout.invalidateLayout()
     }
 
     // MARK: - Actions
@@ -261,7 +268,30 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
     // MARK: - UICollectionViewDelegateFlowLayout
 
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
-        return CGSizeMake(100.0, 100.0)
+        print("Collection view size: \(collectionView.frame.size)")
+        let viewWidth = collectionView.frame.size.width
+        let totalSpacing = spacing * CGFloat(itemsPerRow + 1)
+        var spaceForItems = viewWidth - totalSpacing
+
+        if spaceForItems < 0.0 {
+            spaceForItems = 0.0
+        }
+
+        let thisItem = spaceForItems / CGFloat(itemsPerRow)
+
+        return CGSizeMake(thisItem, thisItem)
+    }
+
+    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAtIndex section: Int) -> CGFloat {
+        return CGFloat(spacing)
+    }
+
+    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAtIndex section: Int) -> CGFloat {
+        return CGFloat(spacing)
+    }
+
+    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAtIndex section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 0.0, left: CGFloat(spacing), bottom: 0.0, right: CGFloat(spacing))
     }
 
     // MARK: UI Changes

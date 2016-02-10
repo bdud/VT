@@ -18,7 +18,6 @@ extension FlickrClient {
             QueryKeys.Format: QueryValues.Format
         ]
         var page: Int!
-        var totalPages: Int = 0
         var longitude: Double!
         var latitude: Double!
 
