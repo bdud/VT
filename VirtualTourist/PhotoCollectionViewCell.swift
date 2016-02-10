@@ -16,10 +16,12 @@ class PhotoCollectionViewCell: UICollectionViewCell {
         assert(NSThread.isMainThread())
         if let image = image {
             imageView.image = image
+            imageView.hidden = false
             activityIndicator.stopAnimating()
         }
         else {
             imageView.image = nil
+            imageView.hidden = true
             activityIndicator.startAnimating()
         }
     }
