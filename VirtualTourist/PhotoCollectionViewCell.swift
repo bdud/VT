@@ -16,13 +16,32 @@ class PhotoCollectionViewCell: UICollectionViewCell {
         assert(NSThread.isMainThread())
         if let image = image {
             imageView.image = image
-            imageView.hidden = false
-            activityIndicator.stopAnimating()
+            showIndicator(false)
         }
         else {
             imageView.image = nil
-            imageView.hidden = true
+            showIndicator(true)
+        }
+    }
+
+    func showIndicator(show: Bool) {
+        assert(NSThread.isMainThread())
+
+        imageView.hidden = show
+        activityIndicator.hidden = !show
+
+        if show {
             activityIndicator.startAnimating()
+        }
+        else {
+            activityIndicator.stopAnimating()
+        }
+    }
+
+    func hideIndicatorIfImage() {
+        assert(NSThread.isMainThread())
+        if let _ = imageView.image {
+            showIndicator(false)
         }
     }
     

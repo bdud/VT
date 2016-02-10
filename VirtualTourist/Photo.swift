@@ -6,7 +6,6 @@
 //  Copyright © 2016 Bill Dawson. All rights reserved.
 //
 
-import Foundation
 import CoreData
 import UIKit
 
@@ -51,7 +50,6 @@ class Photo: NSManagedObject {
     func image(callback: ImageLoadCallback) {
         // Check cachedImage
         if let cachedImage = cachedImage {
-            print("Already cached, returning that.")
             callback(errorMessage: nil, image: cachedImage)
             return
         }
@@ -81,6 +79,10 @@ class Photo: NSManagedObject {
         else {
             print("Image didn't get created!")
         }
+    }
+
+    func clearCachedImage() {
+        cachedImage = nil
     }
 
 }

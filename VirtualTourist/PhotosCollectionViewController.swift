@@ -53,6 +53,16 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
         collectionView.collectionViewLayout.invalidateLayout()
     }
 
+    override func didReceiveMemoryWarning() {
+        print("Memory warning received in PhotosCollectionViewController")
+        if let pin = pin, photos = pin.photos {
+            photos.forEach({ (obj: AnyObject) -> () in
+                if let photo = obj as? Photo {
+                    photo.clearCachedImage()
+                }
+            })
+        }
+    }
     // MARK: - Actions
 
     @IBAction func newCollectionTouchUp(sender: AnyObject) {
@@ -65,6 +75,12 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
         var pageNumber = pin.lastFetchedPageNumber!.integerValue
         if pageNumber == 0 {
             pageNumber = 1
+        }
+
+        collectionView.visibleCells().forEach { (cell: UICollectionViewCell) -> () in
+            if let cell = cell as? PhotoCollectionViewCell {
+                cell.showIndicator(true)
+            }
         }
 
         performPhotoFetch(FlickrClient.QueryState(page: pageNumber + 1, latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude))
@@ -179,12 +195,14 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
             guard errorMessage == nil else {
                 Alert.sharedInstance().ok(nil, message: errorMessage!, owner: self, completion: nil)
                 self.enableFetchButton(true)
+                self.stopActivityIndicators();
                 return
             }
             guard let result = result else {
                 print("No error message, but no result either")
                 Alert.sharedInstance().ok(nil, message: ClientConvenience.ErrorStrings.ServerData, owner: self, completion: nil)
                 self.enableFetchButton(true)
+                self.stopActivityIndicators();
                 return
             }
 
@@ -210,10 +228,15 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
             self.reloadData()
 
             self.batchDownloader = PhotoBatchDownloader(photos: self.pin!.photos!, callback: { (success, photos) -> Void in
-                print("Downloads completed")
-                self.reloadData()
                 self.batchDownloader = nil
-                self.enableFetchButton(true)
+                if success {
+                    print("Downloads completed")
+                    self.reloadData()
+                    self.enableFetchButton(true)
+                }
+                else {
+                    self.stopActivityIndicators()
+                }
             })
 
             self.batchDownloader?.delegate = self
@@ -268,7 +291,6 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
     // MARK: - UICollectionViewDelegateFlowLayout
 
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
-        print("Collection view size: \(collectionView.frame.size)")
         let viewWidth = collectionView.frame.size.width
         let totalSpacing = spacing * CGFloat(itemsPerRow + 1)
         var spaceForItems = viewWidth - totalSpacing
@@ -304,6 +326,16 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
         }
         else {
             newCollectionButton.enabled = enable
+        }
+    }
+
+    func stopActivityIndicators() {
+        dispatch_async(dispatch_get_main_queue()) { () -> Void in
+            self.collectionView.visibleCells().forEach({ (cell: UICollectionViewCell) -> () in
+                if let cell = cell as? PhotoCollectionViewCell {
+                    cell.showIndicator(false)
+                }
+            })
         }
     }
 }
