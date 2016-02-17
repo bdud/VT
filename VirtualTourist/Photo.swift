@@ -19,6 +19,14 @@ class Photo: NSManagedObject {
     private var callbacks: [ImageLoadCallback] = [ImageLoadCallback]()
     private let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
 
+    private var imageFilePath: String? {
+        guard let fileName = self.fileName else {
+            return nil
+        }
+
+        return appDelegate.documentsDirectory.URLByAppendingPathComponent(fileName).path
+    }
+
     // MARK: - Initializers
 
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
@@ -40,11 +48,11 @@ class Photo: NSManagedObject {
             return true
         }
 
-        guard let fileName = fileName else {
+        guard let path = imageFilePath else {
             return false
         }
 
-        return NSFileManager.defaultManager().fileExistsAtPath(appDelegate.documentsDirectory.URLByAppendingPathComponent(fileName).path!)
+        return NSFileManager.defaultManager().fileExistsAtPath(path)
     }
 
     func image(callback: ImageLoadCallback) {
@@ -57,15 +65,18 @@ class Photo: NSManagedObject {
         callbacks.append(callback)
 
         // * Check file system
-        guard let fileName = fileName else {
+        guard let _ = fileName else {
             print("No local file name stored for photo at url: \(remoteUrl)")
             return
         }
 
-        let localUrl = appDelegate.documentsDirectory.URLByAppendingPathComponent(fileName)
+        guard let path = imageFilePath  else {
+            print("Unable to get full path for image file for photo at url: \(remoteUrl)")
+            return
+        }
 
-        if NSFileManager.defaultManager().fileExistsAtPath(localUrl.path!) {
-            createCachedImage(localUrl.path!)
+        if NSFileManager.defaultManager().fileExistsAtPath(path) {
+            createCachedImage(path)
         }
     }
 
@@ -83,6 +94,27 @@ class Photo: NSManagedObject {
 
     func clearCachedImage() {
         cachedImage = nil
+    }
+
+    // MARK: - NSManagedObject
+
+    override func prepareForDeletion() {
+        super.prepareForDeletion()
+
+        cachedImage = nil
+
+        if let path = imageFilePath {
+            let mgr = NSFileManager.defaultManager()
+            if mgr.fileExistsAtPath(path) {
+                do {
+                    try mgr.removeItemAtPath(path)
+                }
+                catch {
+                    let error = error as NSError
+                    print("Unable to delete image file when preparing for Photo managed object deletion: \(error) \(error.userInfo)")
+                }
+            }
+        }
     }
 
 }
