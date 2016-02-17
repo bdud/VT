@@ -11,6 +11,8 @@ import CoreData
 import MapKit
 
 private let reuseIdentifier = "Cell"
+private let newCollectionText = "New Collection"
+private let removePicturesText = "Remove Selected Pictures"
 private let cellNib = "PhotoCollectionViewCell"
 private let defaultItemCount = 21
 private let itemsPerRow = 3
@@ -27,7 +29,7 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
 
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var mapView: MKMapView!
-    @IBOutlet weak var newCollectionButton: UIButton!
+    @IBOutlet weak var actionButton: UIButton!
     
     // MARK: - Properties
 
@@ -40,12 +42,14 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
         super.viewDidLoad()
         automaticallyAdjustsScrollViewInsets = false
 
-        collectionView!.registerNib(UINib(nibName: cellNib, bundle: nil), forCellWithReuseIdentifier: reuseIdentifier)
+        collectionView.registerNib(UINib(nibName: cellNib, bundle: nil), forCellWithReuseIdentifier: reuseIdentifier)
         collectionView.delegate = self
         collectionView.dataSource = self
+        collectionView.allowsMultipleSelection = true
 
         fetchPhotosIfNeeded()
         positionMap()
+        updateActionButtonText()
     }
 
     override func viewWillLayoutSubviews() {
@@ -65,7 +69,12 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
     }
     // MARK: - Actions
 
-    @IBAction func newCollectionTouchUp(sender: AnyObject) {
+    @IBAction func actionButtonTouchUp(sender: AnyObject) {
+
+        if collectionView.indexPathsForSelectedItems()?.count > 0 {
+            removeSelectedItems()
+            return
+        }
 
         guard let pin = pin else {
             print("Ignoring request to fetch next page: pin is not set.")
@@ -141,34 +150,19 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
 
     // MARK: - UICollectionViewDelegate
 
-    /*
-    // Uncomment this method to specify if the specified item should be highlighted during tracking
-    override func collectionView(collectionView: UICollectionView, shouldHighlightItemAtIndexPath indexPath: NSIndexPath) -> Bool {
-        return true
-    }
-    */
-
-    /*
     // Uncomment this method to specify if the specified item should be selected
-    override func collectionView(collectionView: UICollectionView, shouldSelectItemAtIndexPath indexPath: NSIndexPath) -> Bool {
+    func collectionView(collectionView: UICollectionView, shouldSelectItemAtIndexPath indexPath: NSIndexPath) -> Bool {
         return true
     }
-    */
 
-    /*
-    // Uncomment these methods to specify if an action menu should be displayed for the specified item, and react to actions performed on the item
-    override func collectionView(collectionView: UICollectionView, shouldShowMenuForItemAtIndexPath indexPath: NSIndexPath) -> Bool {
-        return false
+    func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
+        updateActionButtonText()
     }
 
-    override func collectionView(collectionView: UICollectionView, canPerformAction action: Selector, forItemAtIndexPath indexPath: NSIndexPath, withSender sender: AnyObject?) -> Bool {
-        return false
+    func collectionView(collectionView: UICollectionView, didDeselectItemAtIndexPath indexPath: NSIndexPath) {
+        updateActionButtonText()
     }
 
-    override func collectionView(collectionView: UICollectionView, performAction action: Selector, forItemAtIndexPath indexPath: NSIndexPath, withSender sender: AnyObject?) {
-    
-    }
-    */
 
     // MARK: - Data and Downloads
 
@@ -189,19 +183,19 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
 
     func performPhotoFetch(flickrQuery: FlickrClient.QueryState) {
         print("Fetching info from Flickr")
-        self.enableFetchButton(false)
+        self.enableActionButton(false)
 
         FlickrClient.sharedInstance().queryPhotosByLocation(flickrQuery) { (errorMessage, result) -> Void in
             guard errorMessage == nil else {
                 Alert.sharedInstance().ok(nil, message: errorMessage!, owner: self, completion: nil)
-                self.enableFetchButton(true)
+                self.enableActionButton(true)
                 self.stopActivityIndicators();
                 return
             }
             guard let result = result else {
                 print("No error message, but no result either")
                 Alert.sharedInstance().ok(nil, message: ClientConvenience.ErrorStrings.ServerData, owner: self, completion: nil)
-                self.enableFetchButton(true)
+                self.enableActionButton(true)
                 self.stopActivityIndicators();
                 return
             }
@@ -229,14 +223,10 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
 
             self.batchDownloader = PhotoBatchDownloader(photos: self.pin!.photos!, callback: { (success, photos) -> Void in
                 self.batchDownloader = nil
-                if success {
-                    print("Downloads completed")
-                    self.reloadData()
-                    self.enableFetchButton(true)
-                }
-                else {
-                    self.stopActivityIndicators()
-                }
+                print("Downloads completed")
+                self.reloadData()
+                self.enableActionButton(true)
+                self.stopActivityIndicators()
             })
 
             self.batchDownloader?.delegate = self
@@ -256,7 +246,7 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
 
         if let photos = pin.photos {
             if photos.count > 0 {
-                enableFetchButton(true)
+                enableActionButton(true)
                 // No Flickr fetch necessary
                 print("Already have \(photos.count) photos for this pin, no fetch needed")
                 return
@@ -318,14 +308,14 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
 
     // MARK: UI Changes
 
-    func enableFetchButton(enable: Bool) {
+    func enableActionButton(enable: Bool) {
         if !NSThread.isMainThread() {
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                self.newCollectionButton.enabled = enable
+                self.actionButton.enabled = enable
             })
         }
         else {
-            newCollectionButton.enabled = enable
+            actionButton.enabled = enable
         }
     }
 
@@ -336,6 +326,52 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
                     cell.showIndicator(false)
                 }
             })
+        }
+    }
+
+    func removeSelectedItems() {
+        if let pin = pin, photos = pin.photos, indexPaths = collectionView.indexPathsForSelectedItems() {
+            let indexSet: NSMutableIndexSet = NSMutableIndexSet()
+            indexPaths.forEach({ (path: NSIndexPath) -> () in
+                indexSet.addIndex(path.row)
+            })
+
+            let selectedPhotos = photos.objectsAtIndexes(indexSet) as! [Photo]
+
+            self.sharedContext.performBlockAndWait({ () -> Void in
+                selectedPhotos.forEach({ (photo: Photo) -> () in
+                    self.sharedContext.deleteObject(photo)
+                })
+                CoreDataManager.sharedInstance().saveContext()
+            })
+
+
+            collectionView.performBatchUpdates({ () -> Void in
+                self.collectionView.deleteItemsAtIndexPaths(indexPaths)
+                }) { (finished: Bool) -> Void in
+                    if finished {
+                        self.updateActionButtonText()
+                    }
+            }
+        }
+    }
+
+    func updateActionButtonText() {
+        var text: String
+        if collectionView.indexPathsForSelectedItems()?.count > 0 {
+            text = removePicturesText
+        }
+        else {
+            text = newCollectionText
+        }
+
+        if !NSThread.isMainThread() {
+            dispatch_async(dispatch_get_main_queue()) {
+                self.actionButton.setTitle(text, forState: .Normal)
+            }
+        }
+        else {
+            self.actionButton.setTitle(text, forState: .Normal)
         }
     }
 }

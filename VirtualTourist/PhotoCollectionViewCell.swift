@@ -12,6 +12,12 @@ class PhotoCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
 
+    override var selected: Bool {
+        didSet {
+            self.imageView.layer.opacity = selected ? 0.4 : 1.0
+        }
+    }
+
     func setImage(image: UIImage?) {
         assert(NSThread.isMainThread())
         if let image = image {
@@ -44,5 +50,6 @@ class PhotoCollectionViewCell: UICollectionViewCell {
             showIndicator(false)
         }
     }
-    
+
+
 }

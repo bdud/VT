@@ -3,6 +3,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9530"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
         <!--Virtual Tourist-->
@@ -73,8 +74,9 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="B1b-DT-2gr">
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" indicatorStyle="white" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="B1b-DT-2gr">
                                 <rect key="frame" x="0.0" y="164" width="600" height="386"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="2" minimumInteritemSpacing="2" id="Xgz-Qw-O6Z">
                                     <size key="itemSize" width="193" height="150"/>
                                     <size key="headerReferenceSize" width="0.0" height="0.0"/>
@@ -89,21 +91,22 @@
                                     <constraint firstAttribute="height" constant="100" id="bRf-P1-ght"/>
                                 </constraints>
                             </mapView>
-                            <button opaque="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gVb-XQ-ock" userLabel="Button - New Collection">
-                                <rect key="frame" x="248" y="562" width="104" height="30"/>
-                                <state key="normal" title="New Collection"/>
+                            <button opaque="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gVb-XQ-ock" userLabel="Button - Action Button">
+                                <rect key="frame" x="20" y="562" width="560" height="30"/>
+                                <state key="normal" title="Remove Selected Pictures"/>
                                 <connections>
-                                    <action selector="newCollectionTouchUp:" destination="BSy-HD-ByM" eventType="touchUpInside" id="wSy-nL-KiI"/>
+                                    <action selector="actionButtonTouchUp:" destination="BSy-HD-ByM" eventType="touchUpInside" id="kB5-1u-ohB"/>
                                 </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstItem="gVb-XQ-ock" firstAttribute="leading" secondItem="8ap-WY-p2y" secondAttribute="leadingMargin" id="0Me-UB-59n"/>
                             <constraint firstItem="03d-Tv-MRC" firstAttribute="top" secondItem="B1b-DT-2gr" secondAttribute="bottom" constant="50" id="2Q2-3z-kQV"/>
                             <constraint firstItem="B1b-DT-2gr" firstAttribute="leading" secondItem="8ap-WY-p2y" secondAttribute="leading" id="9xy-bP-byZ"/>
-                            <constraint firstItem="gVb-XQ-ock" firstAttribute="centerX" secondItem="8ap-WY-p2y" secondAttribute="centerX" id="JZg-t1-FDw"/>
                             <constraint firstItem="B1b-DT-2gr" firstAttribute="top" secondItem="C5K-53-IMJ" secondAttribute="bottom" id="VGT-9R-WMY"/>
                             <constraint firstItem="C5K-53-IMJ" firstAttribute="leading" secondItem="8ap-WY-p2y" secondAttribute="leading" id="bYx-zR-58n"/>
+                            <constraint firstItem="gVb-XQ-ock" firstAttribute="trailing" secondItem="8ap-WY-p2y" secondAttribute="trailingMargin" id="lU7-iu-tR1"/>
                             <constraint firstAttribute="trailing" secondItem="C5K-53-IMJ" secondAttribute="trailing" id="pW6-gX-eQf"/>
                             <constraint firstItem="03d-Tv-MRC" firstAttribute="top" secondItem="gVb-XQ-ock" secondAttribute="bottom" constant="8" id="riY-7m-dDz"/>
                             <constraint firstItem="C5K-53-IMJ" firstAttribute="top" secondItem="6KS-s3-nfQ" secondAttribute="bottom" id="vXo-0t-CU1"/>
@@ -111,9 +114,9 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="actionButton" destination="gVb-XQ-ock" id="TVh-ir-M53"/>
                         <outlet property="collectionView" destination="B1b-DT-2gr" id="mDS-78-9F5"/>
                         <outlet property="mapView" destination="C5K-53-IMJ" id="QsK-Y7-bdd"/>
-                        <outlet property="newCollectionButton" destination="gVb-XQ-ock" id="xYg-oS-jAP"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="RxU-Oh-lKl" userLabel="First Responder" sceneMemberID="firstResponder"/>
