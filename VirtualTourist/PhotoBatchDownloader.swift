@@ -49,7 +49,7 @@ class PhotoBatchDownloader {
                     self.delegate?.downloaderDidEncounterError?(errorMessage!, whileDownloadingPhoto: photo)
                     return
                 }
-                CoreDataManager.sharedInstance().saveContext()
+                photo.checkImageReady()
                 self.delegate?.downloaderDidDownloadPhoto?(photo)
 
             })

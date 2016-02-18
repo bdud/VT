@@ -224,7 +224,6 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
             self.batchDownloader = PhotoBatchDownloader(photos: self.pin!.photos!, callback: { (success, photos) -> Void in
                 self.batchDownloader = nil
                 print("Downloads completed")
-                self.reloadData()
                 self.enableActionButton(true)
                 self.stopActivityIndicators()
             })

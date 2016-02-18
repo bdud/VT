@@ -64,7 +64,10 @@ class Photo: NSManagedObject {
 
         callbacks.append(callback)
 
-        // * Check file system
+        checkImageReady()
+    }
+
+    func checkImageReady() {
         guard let _ = fileName else {
             print("No local file name stored for photo at url: \(remoteUrl)")
             return
@@ -78,6 +81,7 @@ class Photo: NSManagedObject {
         if NSFileManager.defaultManager().fileExistsAtPath(path) {
             createCachedImage(path)
         }
+
     }
 
     func createCachedImage(path: String) {
