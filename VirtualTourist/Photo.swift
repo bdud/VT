@@ -20,11 +20,19 @@ class Photo: NSManagedObject {
     private let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
 
     private var imageFilePath: String? {
-        guard let fileName = self.fileName else {
+        // Access to managed property needs to be thread-safe.
+
+        var fileName: String?
+
+        sharedContext.performBlockAndWait { () -> Void in
+            fileName = self.fileName
+        }
+
+        guard fileName != nil else {
             return nil
         }
 
-        return appDelegate.documentsDirectory.URLByAppendingPathComponent(fileName).path
+        return appDelegate.documentsDirectory.URLByAppendingPathComponent(fileName!).path
     }
 
     // MARK: - Initializers
@@ -68,11 +76,6 @@ class Photo: NSManagedObject {
     }
 
     func checkImageReady() {
-        guard let _ = fileName else {
-            print("No local file name stored for photo at url: \(remoteUrl)")
-            return
-        }
-
         guard let path = imageFilePath  else {
             print("Unable to get full path for image file for photo at url: \(remoteUrl)")
             return
@@ -101,6 +104,10 @@ class Photo: NSManagedObject {
     }
 
     // MARK: - NSManagedObject
+
+    lazy var sharedContext: NSManagedObjectContext = {
+        return CoreDataManager.sharedInstance().context
+    }()
 
     override func prepareForDeletion() {
         super.prepareForDeletion()

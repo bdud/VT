@@ -22,38 +22,39 @@ class PhotoBatchDownloader {
     var photos: NSOrderedSet
     var callback: PhotoBatchDownloaderCallback!
     var errors: [String] = [String]()
-    var remaining: Int
 
     weak var delegate: PhotoBatchDownloaderDelegate?
 
     init(photos: NSOrderedSet, callback: PhotoBatchDownloaderCallback) {
         self.photos = photos
         self.callback = callback
-        remaining = photos.count
     }
 
     func begin() {
-        print("Fetching photos from flickr")
-        photos.forEach { (element: AnyObject) -> () in
-            let photo = element as! Photo
-            let destinationUrl = appDelegate.documentsDirectory.URLByAppendingPathComponent(photo.fileName!)
-            let downloader = FlickrImageDownloader(url: photo.remoteUrl!, destinationUrl: destinationUrl, callback: { (errorMessage) -> Void in
-                let remaining = --self.remaining
-                defer {
-                    if remaining == 0 {
-                        self.callback(success: (self.errors.count == 0), photos: self.photos)
+        CoreDataManager.sharedInstance().context.performBlock { () -> Void in
+            print("Fetching photos from flickr")
+            var remaining = self.photos.count
+            self.photos.forEach { (element: AnyObject) -> () in
+                let photo = element as! Photo
+                let destinationUrl = self.appDelegate.documentsDirectory.URLByAppendingPathComponent(photo.fileName!)
+                let downloader = FlickrImageDownloader(url: photo.remoteUrl!, destinationUrl: destinationUrl, callback: { (errorMessage) -> Void in
+                    let remaining = --remaining
+                    defer {
+                        if remaining == 0 {
+                            self.callback(success: (self.errors.count == 0), photos: self.photos)
+                        }
                     }
-                }
-                guard errorMessage == nil else {
-                    self.errors.append(errorMessage!)
-                    self.delegate?.downloaderDidEncounterError?(errorMessage!, whileDownloadingPhoto: photo)
-                    return
-                }
-                photo.checkImageReady()
-                self.delegate?.downloaderDidDownloadPhoto?(photo)
+                    guard errorMessage == nil else {
+                        self.errors.append(errorMessage!)
+                        self.delegate?.downloaderDidEncounterError?(errorMessage!, whileDownloadingPhoto: photo)
+                        return
+                    }
+                    photo.checkImageReady()
+                    self.delegate?.downloaderDidDownloadPhoto?(photo)
 
-            })
-            downloader.begin()
+                })
+                downloader.begin()
+            }
         }
     }
 }

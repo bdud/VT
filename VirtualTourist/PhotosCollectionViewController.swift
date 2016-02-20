@@ -185,6 +185,8 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
         print("Fetching info from Flickr")
         self.enableActionButton(false)
 
+        var photoObjSet: NSOrderedSet!
+
         FlickrClient.sharedInstance().queryPhotosByLocation(flickrQuery) { (errorMessage, result) -> Void in
             guard errorMessage == nil else {
                 Alert.sharedInstance().ok(nil, message: errorMessage!, owner: self, completion: nil)
@@ -200,28 +202,35 @@ class PhotosCollectionViewController: UIViewController, UICollectionViewDataSour
                 return
             }
 
-            self.pin?.lastFetchedPageNumber = result.page
+            // Thread-safe CoreData changes.
+            // We block because we need the new photos ordered set to be present
+            // in order for the PhotoBatchDownloader to work.
+            self.sharedContext.performBlockAndWait({ () -> Void in
+                self.pin?.lastFetchedPageNumber = result.page
 
-            // We only keep one collection (page) of photos in storage, so if any are there
-            // now, delete them.
-            if let pin = self.pin, photos = pin.photos {
-                for entry in photos {
-                    let p = entry as! Photo
-                    self.sharedContext.deleteObject(p)
+                // We only keep one collection (page) of photos in storage, so if any are there
+                // now, delete them.
+                if let pin = self.pin, photos = pin.photos {
+                    for entry in photos {
+                        let p = entry as! Photo
+                        self.sharedContext.deleteObject(p)
+                    }
                 }
-            }
 
-            // Make new managed Photo objects.
-            result.photos.forEach({ (entry: [String: AnyObject]) -> () in
-                if let url = entry[FlickrClient.JSONKeys.Url] as? String, id = entry[FlickrClient.JSONKeys.ID] as? String {
-                    let _ = Photo(pin: self.pin!, url: url, fileName: id, insertIntoManagedObjectContext: self.sharedContext)
-                }
+                // Make new managed Photo objects.
+                result.photos.forEach({ (entry: [String: AnyObject]) -> () in
+                    if let url = entry[FlickrClient.JSONKeys.Url] as? String, id = entry[FlickrClient.JSONKeys.ID] as? String {
+                        let _ = Photo(pin: self.pin!, url: url, fileName: id, insertIntoManagedObjectContext: self.sharedContext)
+                    }
+                })
+
+                CoreDataManager.sharedInstance().saveContext()
+                photoObjSet = self.pin!.photos!
             })
-            CoreDataManager.sharedInstance().saveContext()
 
             self.reloadData()
 
-            self.batchDownloader = PhotoBatchDownloader(photos: self.pin!.photos!, callback: { (success, photos) -> Void in
+            self.batchDownloader = PhotoBatchDownloader(photos: photoObjSet, callback: { (success, photos) -> Void in
                 self.batchDownloader = nil
                 print("Downloads completed")
                 self.enableActionButton(true)
